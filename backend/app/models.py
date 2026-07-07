@@ -23,3 +23,20 @@ class Series(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class StreamingProvider(models.Model):
+    series = models.ForeignKey(
+        Series, on_delete=models.CASCADE, related_name='providers'
+    )
+    provider_id = models.IntegerField()
+    provider_name = models.CharField(max_length=100)
+    logo_path = models.CharField(max_length=255, blank=True, null=True)
+    display_priority = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['display_priority']
+        unique_together = ['series', 'provider_id']
+
+    def __str__(self):
+        return f"{self.provider_name} - {self.series.title}"

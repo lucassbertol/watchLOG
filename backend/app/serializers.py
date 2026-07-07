@@ -1,11 +1,16 @@
 from rest_framework import serializers
-from .models import Series
+from .models import Series, StreamingProvider
 
-# para converter os JSONs em objetos Python e vice-versa, para facilitar a comunicação entre o frontend e o backend. 
-# O serializer é responsável por definir como os dados do modelo Series serão convertidos para JSON e como os dados JSON serão 
-# convertidos de volta para objetos Python
+
+class StreamingProviderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StreamingProvider
+        fields = ['provider_id', 'provider_name', 'logo_path', 'display_priority']
+
 
 class SeriesSerializer(serializers.ModelSerializer):
+    providers = StreamingProviderSerializer(many=True, read_only=True)
+
     class Meta:
         model = Series
         fields = '__all__'
