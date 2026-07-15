@@ -7,6 +7,7 @@ from rest_framework.response import Response
 import requests
 import os
 from collections import defaultdict
+from decimal import Decimal
 
 
 class SeriesViewSet(viewsets.ModelViewSet):
@@ -42,7 +43,8 @@ class SeriesViewSet(viewsets.ModelViewSet):
                     'tmdb_id': item['id'],
                     'title': item['name'],
                     'description': item['overview'],
-                    'poster_path': item.get('poster_path', '')
+                    'poster_path': item.get('poster_path', ''),
+                    'tmdb_rating': round(item.get('vote_average', 0), 1)
                 })
             return Response(results)
         except Exception as e:
@@ -60,6 +62,19 @@ class SeriesViewSet(viewsets.ModelViewSet):
         if not TMDB_API_KEY:
             return Response({'error': 'TMDB_API_KEY não configurada'}, status=500)
 
+        # Buscar vote_average da série
+        details_url = f'https://api.themoviedb.org/3/tv/{tmdb_id}'
+        details_params = {'api_key': TMDB_API_KEY, 'language': 'pt-BR'}
+        
+        try:
+            details_response = requests.get(details_url, params=details_params)
+            details_data = details_response.json()
+            series.tmdb_rating = round(details_data.get('vote_average', 0), 1)
+            series.save()
+        except Exception:
+            pass
+
+        # Buscar provedores de streaming
         url = f'https://api.themoviedb.org/3/tv/{tmdb_id}/watch/providers'
         params = {'api_key': TMDB_API_KEY}
 
@@ -156,3 +171,27 @@ class SeriesViewSet(viewsets.ModelViewSet):
         results.sort(key=lambda r: (-r['match_count'], -r['vote_average']))
 
         return Response(results[:12])
+
+    @action(detail=False, methods=['post'], url_path='update-ratings')
+    def update_ratings(self, request):
+        TMDB_API_KEY = os.getenv('TMDB_API_KEY')
+        if not TMDB_API_KEY:
+            return Response({'error': 'TMDB_API_KEY não configurada'}, status=500)
+
+        series_to_update = Series.objects.filter(tmdb_id__isnull=False)
+        updated_count = 0
+
+        for series in series_to_update:
+            url = f'https://api.themoviedb.org/3/tv/{series.tmdb_id}'
+            params = {'api_key': TMDB_API_KEY, 'language': 'pt-BR'}
+
+            try:
+                response = requests.get(url, params=params)
+                data = response.json()
+                series.tmdb_rating = round(data.get('vote_average', 0), 1)
+                series.save()
+                updated_count += 1
+            except Exception:
+                continue
+
+        return Response({'updated': updated_count})

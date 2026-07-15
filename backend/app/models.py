@@ -14,6 +14,7 @@ class Series(models.Model):
     poster_path = models.CharField(max_length=255, blank=True, null=True) 
     status = models.CharField(max_length=20, default='ongoing')
     grade = models.DecimalField(max_digits=3, decimal_places=1, default=0.0)
+    tmdb_rating = models.DecimalField(max_digits=3, decimal_places=1, default=0.0)
     dateEnded = models.DateField(blank=True, null=True)
     collection_type = models.CharField(
         max_length=20,

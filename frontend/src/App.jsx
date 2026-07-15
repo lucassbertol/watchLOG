@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import "./App.css";
 
+const API_BASE = "";
+
 function App() {
   const [activeTab, setActiveTab] = useState("backlog");
   const [series, setSeries] = useState([]);
@@ -10,6 +12,7 @@ function App() {
   const [tmdbId, setTmdbId] = useState(null);
   const [grade, setGrade] = useState("");
   const [posterPath, setPosterPath] = useState("");
+  const [tmdbRating, setTmdbRating] = useState("");
   const [modalSeries, setModalSeries] = useState(null);
   const [modalGrade, setModalGrade] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -18,7 +21,7 @@ function App() {
 
   // Buscar séries do banco local
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/series/")
+    fetch(`${API_BASE}/api/series/`)
       .then((response) => response.json())
       .then((data) => {
         // Separa as séries por collection_type
@@ -44,7 +47,7 @@ function App() {
       return;
     }
 
-    fetch(`http://127.0.0.1:8000/api/series/search-tmdb/?q=${query}`)
+    fetch(`${API_BASE}/api/series/search-tmdb/?q=${query}`)
       .then((response) => response.json())
       .then((data) => setSearchResults(data))
       .catch((error) => console.error("Erro na busca:", error));
@@ -56,6 +59,7 @@ function App() {
     setDescription(item.description);
     setTmdbId(item.tmdb_id);
     setPosterPath(item.poster_path);
+    setTmdbRating(item.tmdb_rating);
     setSearchResults([]);
     setSearchQuery("");
   };
@@ -68,6 +72,7 @@ function App() {
       title,
       description,
       poster_path: posterPath,
+      tmdb_rating: tmdbRating ? parseFloat(tmdbRating) : 0.0,
       collection_type: activeTab,
     };
 
@@ -76,7 +81,7 @@ function App() {
       newSeries.grade = grade ? parseFloat(grade) : 0.0;
     }
 
-    fetch("http://127.0.0.1:8000/api/series/", {
+    fetch(`${API_BASE}/api/series/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -89,7 +94,7 @@ function App() {
       })
       .then((data) => {
         // Busca provedores de streaming para a série
-        fetch(`http://127.0.0.1:8000/api/series/${data.id}/fetch-providers/`, {
+        fetch(`${API_BASE}/api/series/${data.id}/fetch-providers/`, {
           method: "POST",
         })
           .then((res) => res.json())
@@ -113,6 +118,7 @@ function App() {
         setDescription("");
         setPosterPath("");
         setTmdbId(null);
+        setTmdbRating("");
         setGrade("");
         setSearchQuery("");
       })
@@ -120,7 +126,7 @@ function App() {
   };
 
   const handleDelete = (id) => {
-    fetch(`http://127.0.0.1:8000/api/series/${id}/`, {
+    fetch(`${API_BASE}/api/series/${id}/`, {
       method: "DELETE",
     })
       .then(() => {
@@ -143,7 +149,7 @@ function App() {
 
     const gradeValue = modalGrade ? parseFloat(modalGrade) : 0.0;
 
-    fetch(`http://127.0.0.1:8000/api/series/${modalSeries.id}/`, {
+    fetch(`${API_BASE}/api/series/${modalSeries.id}/`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -176,7 +182,7 @@ function App() {
   const currentSeriesList =
     activeTab === "backlog"
       ? [...series].sort((a, b) => parseFloat(b.grade) - parseFloat(a.grade))
-      : watchLater;
+      : [...watchLater].sort((a, b) => parseFloat(b.tmdb_rating) - parseFloat(a.tmdb_rating));
 
   // Estatísticas do backlog
   const stats = useMemo(() => {
@@ -260,7 +266,7 @@ function App() {
 
     setRecsData({ loading: true, items: [] });
 
-    fetch("http://127.0.0.1:8000/api/series/recommendations/", {
+    fetch(`${API_BASE}/api/series/recommendations/`, {
       signal: controller.signal,
     })
       .then((res) => res.json())
@@ -450,7 +456,7 @@ function App() {
                             </div>
                           )}
 
-                          {/* Nota - apenas para Backlog */}
+                          {/* Nota do Usuário - apenas para Backlog */}
                           {activeTab === "backlog" && (
                             <div className="series-grade">
                               <span className="series-grade-star">⭐</span>
@@ -458,6 +464,16 @@ function App() {
                                 {parseFloat(item.grade).toFixed(1)}
                               </span>
                               <span className="series-grade-max">/10</span>
+                            </div>
+                          )}
+
+                          {/* Nota TMDB */}
+                          {item.tmdb_rating > 0 && (
+                            <div className="series-tmdb-rating">
+                              <span className="tmdb-badge">TMDB</span>
+                              <span className="tmdb-value">
+                                {parseFloat(item.tmdb_rating).toFixed(1)}
+                              </span>
                             </div>
                           )}
 
@@ -594,6 +610,30 @@ function App() {
                     </div>
                   </div>
                 )}
+
+                {/* Atualizar ratings TMDB */}
+                <div className="stats-section-block">
+                  <h3 className="stats-subtitle">Dados TMDB</h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: '0 0 12px 0' }}>
+                    Atualize as notas TMDB de todas as séries automaticamente.
+                  </p>
+                  <button
+                    onClick={() => {
+                      fetch(`${API_BASE}/api/series/update-ratings/`, {
+                        method: "POST",
+                      })
+                        .then((res) => res.json())
+                        .then((data) => {
+                          alert(`Nota TMDB atualizada para ${data.updated} séries!`);
+                          window.location.reload();
+                        })
+                        .catch(() => alert("Erro ao atualizar ratings."));
+                    }}
+                    className="submit-button"
+                  >
+                    Atualizar Notas TMDB
+                  </button>
+                </div>
               </>
             )}
           </section>

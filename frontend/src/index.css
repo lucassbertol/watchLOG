@@ -105,6 +105,12 @@ button {
   outline-offset: 2px;
 }
 
+/* Mobile touch optimization */
+body {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   :root {
