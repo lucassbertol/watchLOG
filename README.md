@@ -20,67 +20,119 @@
 
 ---
 
-## 📌 Overview
+## Overview
 
-**watchLOG** is a web application designed to help users manage their TV series watching experience. Keep track of series you want to watch, rate the ones you've completed, and maintain a personalized backlog of your entertainment journey.
-
----
-
-## ✨ Features
-
-- 📺 **Series backlog** — add series you want to watch and organize them
-- ⭐ **Ratings system** — rate completed series to
+**watchLOG** is a web application designed to help users manage their TV series watching experience. Keep track of series you want to watch, rate the ones you've completed, get personalized recommendations, and maintain a backlog of your entertainment journey.
 
 ---
 
-## 🚀 Getting Started
+## Features
 
-### Prerequisites
-
-### 1. Clone the repository
-
-git clone `https://github.com/lucassbertol/wachlog`  
-`cd watchLOG`
+- **Series backlog** — add series you want to watch and organize them
+- **Ratings system** — rate completed series
+- **Recommendation system** — get personalized series suggestions
 
 ---
 
-### 2. env file
+## Prerequisites
+
+| Tool | Version |
+|------|---------|
+| Python | 3.10+ |
+| Node.js | 20.19+ |
+| npm | 10+ |
+
+---
+
+## 1. Clone the repository
+
+```bash
+git clone https://github.com/lucassbertol/watchLOG.git
+cd watchLOG
+```
+
+---
+
+## 2. Environment variables
 
 Fill in your API keys in `backend/.env.example` and rename the file to `.env`.
 
 ---
 
-### 3. Install dependencies
+## 3. Install dependencies
 
-Run `installDependencies`
+### Linux
 
-or
+```bash
+cd linux
+chmod +x installDependencies.sh
+./installDependencies.sh
+```
 
-### Install python dependencies
-`cd backend`  
-`pip install -r requirements.txt`
+### Windows
 
-### Install node.js dependencies
-`cd frontend`  
-`npm install`
+```cmd
+cd windows
+installDependencies.bat
+```
 
----
-
-### 4. Run the server
-
-Run `watchLOG`
-
-or
-
-### Run backend
-`cd backend`  
-`python manage.py migrate`  
-`python manage.py runserver`  
-
-### Run frontend
-`cd frontend`  
-`npm run dev` 
+This will:
+1. Create a Python virtual environment in `backend/venv`
+2. Install all Python dependencies
+3. Install Playwright browsers
+4. Install Node.js dependencies
+5. Run database migrations
 
 ---
 
-The application will be available at `http://localhost:5173/.`
+## 4. Run the application
+
+### Linux
+
+```bash
+cd linux
+./watchLOG.sh
+```
+
+### Windows
+
+```cmd
+cd windows
+watchLOG.bat
+```
+
+This will:
+1. Run database migrations
+2. Open a terminal with the **Backend** (Django) at `http://localhost:8000`
+3. Open a terminal with the **Frontend** (Vite) at `http://localhost:5173`
+
+---
+
+## Manual setup
+
+If you prefer to run commands manually:
+
+### Backend
+
+```bash
+cd backend
+python3 -m venv venv
+source venv/bin/activate   # Linux
+# venv\Scripts\activate    # Windows
+pip install -r requirements.txt
+python -m playwright install
+python manage.py migrate
+python manage.py runserver
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+---
+
+The application will be available at `http://localhost:5173`.
