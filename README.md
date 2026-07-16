@@ -39,34 +39,48 @@
 
 ### 1. Clone the repository
 
-```bash
-git clone https://github.com/lucassbertol/wachlog
-cd watchLOG
-```
+git clone `https://github.com/lucassbertol/wachlog`  
+`cd watchLOG`
 
-### 2. Install dependencies
+---
 
-```bash
-# Install python dependencies
-cd backend
-pip install -r requirements.txt
+### 2. env file
 
-# Install node.js dependencies
-cd frontend
-npm install
-```
+Fill in your API keys in `backend/.env.example` and rename the file to `.env`.
 
-### 3. Run the server
+---
 
-```bash
-# Run backend
-cd backend
-python manage.py migrate
-python manage.py runserver
+### 3. Install dependencies
 
-# Run frontend
-cd frontend
-npm run dev
-```
+Run `installDependencies`
 
-The application will be available at `http://localhost:5173/`.
+or
+
+### Install python dependencies
+`cd backend`  
+`pip install -r requirements.txt`
+
+### Install node.js dependencies
+`cd frontend`  
+`npm install`
+
+---
+
+### 4. Run the server
+
+Run `watchLOG`
+
+or
+
+### Run backend
+`cd backend`  
+`python manage.py migrate`  
+`python manage.py runserver`  
+
+### Run frontend
+`cd frontend`  
+`npm run dev` 
+
+---
+
+The application will be available at `http://localhost:5173/.`
