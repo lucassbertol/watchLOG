@@ -4,25 +4,35 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 NVM_DIR="$HOME/.nvm"
 NVM_INIT="[ -s '$NVM_DIR/nvm.sh' ] && \. '$NVM_DIR/nvm.sh'"
-VENV_ACTIVATE="source '$ROOT_DIR/backend/venv/bin/activate'"
+
+cd "$ROOT_DIR/backend"
+if [ -f venv/bin/activate ]; then
+    VENV_CMD="source '$ROOT_DIR/backend/venv/bin/activate' && "
+    VENV_LOCAL="source venv/bin/activate && "
+else
+    VENV_CMD=""
+    VENV_LOCAL=""
+fi
+
+BACKEND_CMD="${VENV_CMD}cd '$ROOT_DIR/backend' && python manage.py runserver"
+FRONTEND_CMD="cd '$ROOT_DIR/frontend' && npm run dev"
 
 echo "=== Iniciando o projeto watchLOG ==="
 echo ""
 
 echo "[0/2] Rodando migracoes do banco de dados..."
 cd "$ROOT_DIR/backend"
-source venv/bin/activate
-python manage.py migrate
+${VENV_LOCAL}python manage.py migrate
 echo "Migracoes: OK"
 echo ""
 
 echo "[1/2] Abrindo Backend (Django) em http://localhost:8000..."
 if command -v gnome-terminal &>/dev/null; then
-    gnome-terminal -- bash -c "$NVM_INIT && $VENV_ACTIVATE && cd '$ROOT_DIR/backend' && python manage.py runserver; exec bash"
+    gnome-terminal -- bash -c "$NVM_INIT && $BACKEND_CMD; exec bash"
 elif command -v konsole &>/dev/null; then
-    konsole -e bash -c "$NVM_INIT && $VENV_ACTIVATE && cd '$ROOT_DIR/backend' && python manage.py runserver; exec bash"
+    konsole -e bash -c "$NVM_INIT && $BACKEND_CMD; exec bash"
 elif command -v xterm &>/dev/null; then
-    xterm -e bash -c "$NVM_INIT && $VENV_ACTIVATE && cd '$ROOT_DIR/backend' && python manage.py runserver; exec bash" &
+    xterm -e bash -c "$NVM_INIT && $BACKEND_CMD; exec bash" &
 else
     echo "Nenhum terminal grafico encontrado (gnome-terminal, konsole, xterm)."
     echo "Iniciando no terminal atual..."
@@ -32,11 +42,11 @@ fi
 
 echo "[2/2] Abrindo Frontend (Vite) em http://localhost:5173..."
 if command -v gnome-terminal &>/dev/null; then
-    gnome-terminal -- bash -c "$NVM_INIT && cd '$ROOT_DIR/frontend' && npm run dev; exec bash"
+    gnome-terminal -- bash -c "$NVM_INIT && $FRONTEND_CMD; exec bash"
 elif command -v konsole &>/dev/null; then
-    konsole -e bash -c "$NVM_INIT && cd '$ROOT_DIR/frontend' && npm run dev; exec bash"
+    konsole -e bash -c "$NVM_INIT && $FRONTEND_CMD; exec bash"
 elif command -v xterm &>/dev/null; then
-    xterm -e bash -c "$NVM_INIT && cd '$ROOT_DIR/frontend' && npm run dev; exec bash" &
+    xterm -e bash -c "$NVM_INIT && $FRONTEND_CMD; exec bash" &
 else
     cd "$ROOT_DIR/frontend" && npm run dev &
     FRONTEND_PID=$!
